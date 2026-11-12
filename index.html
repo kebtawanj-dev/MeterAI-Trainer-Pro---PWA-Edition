@@ -27,7 +27,7 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-base sm:text-lg leading-tight flex items-center">
-                        MeterAI Trainer <span class="ml-2 text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-2 py-0.5 rounded-full font-mono">Production Ready</span>
+                        MeterAI Trainer <span class="ml-2 text-[10px] bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 px-2 py-0.5 rounded-full font-mono">Google Sheets Sync</span>
                     </h1>
                     <p class="text-xs text-slate-400">ระบบเทรน AI อ่านมาตรน้ำ PWA (4 ดำ + 3 แดง + เข็ม)</p>
                 </div>
@@ -83,17 +83,20 @@
             <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
                 <div class="flex items-center space-x-3">
                     <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center shrink-0 border border-cyan-500/20">
-                        <i class="fa-solid fa-share-nodes text-lg"></i>
+                        <i class="fa-solid fa-table text-lg"></i>
                     </div>
                     <div>
-                        <h3 class="text-sm font-bold text-slate-100">ระบบแชร์ Dataset และเตรียมความพร้อมสำหรับ Deploy</h3>
-                        <p class="text-xs text-slate-400">บันทึกรูปภาพและค่าจริงเพื่อแชร์ให้ทีมงานร่วมกันเทรนผ่านอินเทอร์เน็ต</p>
+                        <h3 class="text-sm font-bold text-slate-100">ระบบฐานข้อมูลกลาง Google Sheets</h3>
+                        <p class="text-xs text-slate-400">บันทึกรูปภาพและค่าจริงเพื่อแชร์ให้ทีมงานร่วมกันซิงค์ข้อมูลผ่าน Google Sheets</p>
                     </div>
                 </div>
                 <div class="flex items-center space-x-2 flex-wrap gap-2">
                     <span class="text-xs bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-slate-300">
                         <i class="fa-solid fa-database text-cyan-400 mr-1"></i> ทั้งหมด: <strong id="shared-dataset-count" class="text-white">0</strong> รูป
                     </span>
+                    <button onclick="loadDatasetFromStorage()" class="bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-medium px-3 py-2 rounded-xl transition flex items-center space-x-1">
+                        <i class="fa-solid fa-rotate"></i><span>รีเฟรชข้อมูล</span>
+                    </button>
                     <button onclick="exportDatasetJSON()" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium px-3 py-2 rounded-xl transition flex items-center space-x-1">
                         <i class="fa-solid fa-file-export"></i><span>ส่งออก JSON</span>
                     </button>
@@ -150,7 +153,7 @@
                                 <div class="relative rounded-xl overflow-hidden shadow-inner bg-slate-950 inline-block max-w-full border border-slate-800">
                                     <canvas id="editor-canvas" class="max-h-64 object-contain mx-auto block"></canvas>
                                 </div>
-                                <p class="text-xs text-slate-400">ภาพที่ผ่านการปรับแต่งสำหรับส่งเข้าฐานข้อมูลทีม</p>
+                                <p class="text-xs text-slate-400">ภาพที่ผ่านการปรับแต่งสำหรับส่งเข้าฐานข้อมูล Google Sheets</p>
                             </div>
                         </div>
 
@@ -240,7 +243,7 @@
 
                             <button onclick="addToDataset()" class="w-full bg-gradient-to-r from-cyan-600 to-teal-600 hover:from-cyan-500 hover:to-teal-500 text-white font-semibold py-3 px-4 rounded-xl shadow-md transition flex items-center justify-center space-x-2 text-xs">
                                 <i class="fa-solid fa-cloud-arrow-up text-sm"></i>
-                                <span>บันทึกส่งเข้าฐานข้อมูลทีม (Shared Dataset)</span>
+                                <span>บันทึกส่งเข้า Google Sheets</span>
                             </button>
                         </div>
                     </div>
@@ -252,13 +255,13 @@
             <div class="bg-slate-900 rounded-2xl shadow-sm border border-slate-800 p-6 space-y-5">
                 <div class="flex items-center justify-between border-b border-slate-800 pb-4">
                     <h3 class="font-bold text-slate-200 flex items-center text-sm">
-                        <i class="fa-solid fa-database text-cyan-400 mr-2"></i> คลังรูปภาพรวมของทีม (Team Shared Dataset)
+                        <i class="fa-solid fa-table text-cyan-400 mr-2"></i> คลังรูปภาพรวมจาก Google Sheets (Shared Dataset)
                     </h3>
-                    <span class="text-xs text-slate-400">ข้อมูลจะถูกบันทึกอัตโนมัติในเบราว์เซอร์ (LocalStorage / Cloud Sync)</span>
+                    <span class="text-xs text-slate-400">ซิงค์อัตโนมัติจากฐานข้อมูลกลาง</span>
                 </div>
                 <div id="dataset-grid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                     <div class="col-span-full py-8 text-center text-slate-500 text-xs">
-                        ยังไม่มีข้อมูลใน Dataset ร่วม กรุณาอัปโหลดรูปและบันทึกข้อมูล
+                        กำลังโหลดข้อมูลจาก Google Sheets...
                     </div>
                 </div>
             </div>
@@ -442,60 +445,22 @@
     <div id="deployment-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
         <div class="bg-slate-900 rounded-2xl max-w-3xl w-full p-6 space-y-6 shadow-2xl border border-slate-800 my-8">
             <div class="flex items-center justify-between border-b border-slate-800 pb-4">
-                <h3 class="font-bold text-slate-100 text-lg flex items-center"><i class="fa-solid fa-rocket text-emerald-400 mr-2"></i> คู่มือการ Deploy และ Backend Starter Code</h3>
+                <h3 class="font-bold text-slate-100 text-lg flex items-center"><i class="fa-solid fa-rocket text-emerald-400 mr-2"></i> คู่มือการ Deploy และเชื่อมต่อ Google Sheets</h3>
                 <button onclick="closeDeploymentModal()" class="text-slate-400 hover:text-slate-200 text-lg"><i class="fa-solid fa-xmark"></i></button>
             </div>
 
             <div class="space-y-5 text-xs sm:text-sm text-slate-300">
                 <div class="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-cyan-400 text-sm"><i class="fa-brands fa-github mr-1.5"></i> 1. วิธี Deploy ขึ้น GitHub Pages / Vercel ฟรี</h4>
+                    <h4 class="font-bold text-cyan-400 text-sm"><i class="fa-solid fa-table mr-1.5"></i> 1. วิธีตั้งค่า Google Sheets API URL</h4>
+                    <p class="text-slate-400">นำ Web App URL ที่ได้จากการ Deploy Google Apps Script มาใส่ในตัวแปร <code class="text-cyan-300 font-mono">GOOGLE_SHEET_API_URL</code> ด้านบนสุดของ JavaScript</p>
+                </div>
+
+                <div class="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
+                    <h4 class="font-bold text-emerald-400 text-sm"><i class="fa-brands fa-github mr-1.5"></i> 2. วิธี Deploy ขึ้น GitHub Pages ฟรี</h4>
                     <ul class="list-disc list-inside space-y-1 text-slate-400">
-                        <li>ดาวน์โหลดไฟล์นี้ไปบันทึกชื่อว่า <code class="text-cyan-300 font-mono">index.html</code></li>
-                        <li>สร้าง Repository ใหม่บน GitHub และอัปโหลดไฟล์ <code class="text-cyan-300 font-mono">index.html</code> ขึ้นไป</li>
-                        <li>ไปที่ Settings > Pages > ตั้งค่า Source เป็น <code class="text-cyan-300 font-mono">main branch / root</code> แล้วกด Save</li>
-                        <li>หรือนำเข้าโปรเจกต์นี้ใน <strong class="text-white">Vercel</strong> เพื่อ Deploy เป็นเว็บแอปพลิเคชันระดับองค์กรทันที</li>
+                        <li>อัปโหลดไฟล์นี้ตั้งชื่อว่า <code class="text-cyan-300 font-mono">index.html</code> ไปยัง GitHub Repository ของคุณ</li>
+                        <li>ไปที่ Settings > Pages > เลือก Branch เป็น <code class="text-cyan-300 font-mono">main</code> แล้วกด Save</li>
                     </ul>
-                </div>
-
-                <div class="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-emerald-400 text-sm"><i class="fa-solid fa-server mr-1.5"></i> 2. ตัวอย่าง Node.js / Express Backend สำหรับบันทึก Dataset ข้ามทีม</h4>
-                    <pre class="bg-slate-900 p-3 rounded-lg text-emerald-300 font-mono text-[11px] overflow-x-auto"><code>const express = require('express');
-const app = express();
-app.use(express.json({limit: '50mb'}));
-
-let cloudDataset = [];
-
-app.post('/api/dataset', (req, res) => {
-    const item = req.body;
-    cloudDataset.push(item);
-    res.json({ success: true, total: cloudDataset.length });
-});
-
-app.get('/api/dataset', (req, res) => {
-    res.json(cloudDataset);
-});
-
-app.listen(3000, () => console.log('MeterAI Backend running on port 3000'));</code></pre>
-                </div>
-
-                <div class="space-y-2 bg-slate-950 p-4 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-amber-400 text-sm"><i class="fa-brands fa-python mr-1.5"></i> 3. ตัวอย่าง Python FastAPI Backend (สำหรับเชื่อมต่อโมเดล OCR จริง)</h4>
-                    <pre class="bg-slate-900 p-3 rounded-lg text-amber-300 font-mono text-[11px] overflow-x-auto"><code>from fastapi import FastAPI
-from pydantic import BaseModel
-
-app = FastAPI()
-
-class MeterRecord(BaseModel):
-    blackDigits: str
-    redDigits: str
-    dial01: int
-    dial001: int
-
-@app.post("/api/predict")
-def predict_meter(record: MeterRecord):
-    # ทำการประมวลผลด้วย PyTorch / OpenCV ตรงนี้
-    total_m3 = float(record.blackDigits) + (float(record.redDigits) / 1000.0)
-    return {"status": "success", "total_m3": total_m3, "confidence": 0.985}</code></pre>
                 </div>
             </div>
 
@@ -527,11 +492,16 @@ def predict_meter(record: MeterRecord):
 
     <!-- Footer -->
     <footer class="bg-slate-900 border-t border-slate-800 py-4 text-center text-xs text-slate-500">
-        MeterAI Trainer Pro - PWA Edition &copy; 2026 - ระบบเทรนและอ่านมาตรน้ำอัจฉริยะ Production Ready
+        MeterAI Trainer Pro - PWA Edition &copy; 2026 - ระบบเทรนและอ่านมาตรน้ำอัจฉริยะ (Google Sheets Database)
     </footer>
 
     <!-- Application JavaScript Logic -->
     <script>
+        // ==========================================
+        // 📌 ใส่ Google Apps Script Web App URL ของคุณที่นี่
+        // ==========================================
+        const GOOGLE_SHEET_API_URL = 'https://script.google.com/macros/s/YOUR_SCRIPT_ID_HERE/exec';
+
         let dataset = [];
         let trainedModel = null;
         let originalImageObj = null;
@@ -582,15 +552,12 @@ def predict_meter(record: MeterRecord):
             document.getElementById('deployment-modal').classList.add('hidden');
         }
 
-        function loadDatasetFromStorage() {
-            const saved = localStorage.getItem('pwa_meter_team_dataset');
-            if (saved) {
-                try { dataset = JSON.parse(saved); } catch(e) { dataset = []; }
-            }
-            if (dataset.length === 0) {
-                dataset.push({
+        // 📥 ดึงข้อมูลจาก Google Sheets
+        async function loadDatasetFromStorage() {
+            if (GOOGLE_SHEET_API_URL.includes('YOUR_SCRIPT_ID_HERE')) {
+                dataset = [{
                     id: 'sample_team_01',
-                    image: 'https://placehold.co/600x350/0f172a/38bdf8?text=Team+Sample+0482+315',
+                    image: 'https://placehold.co/600x350/0f172a/38bdf8?text=Sample+Configure+Google+Sheet',
                     blackDigits: '0482',
                     redDigits: '315',
                     dial01: 6,
@@ -598,14 +565,26 @@ def predict_meter(record: MeterRecord):
                     totalM3: 482.31562,
                     totalLiters: 482315.62,
                     date: new Date().toLocaleDateString('th-TH')
-                });
-                saveDatasetToStorage();
+                }];
+                updateDatasetUI();
+                return;
+            }
+
+            try {
+                const response = await fetch(GOOGLE_SHEET_API_URL);
+                if (response.ok) {
+                    dataset = await response.json();
+                } else {
+                    dataset = [];
+                }
+            } catch (e) {
+                console.warn("ไม่สามารถดึงข้อมูลจาก Google Sheets ได้:", e);
+                dataset = [];
             }
             updateDatasetUI();
         }
 
         function saveDatasetToStorage() {
-            localStorage.setItem('pwa_meter_team_dataset', JSON.stringify(dataset));
             updateDatasetUI();
         }
 
@@ -711,7 +690,8 @@ def predict_meter(record: MeterRecord):
             alert("AI จำลองการอ่านภาพสำเร็จ: แนะนำตัวเลข [0392.514] และเข็ม [3, 9]");
         }
 
-        function addToDataset() {
+        // 📤 บันทึกส่งเข้า Google Sheets
+        async function addToDataset() {
             if (!currentProcessedImage) { alert("กรุณาอัปโหลดรูปภาพมาตรน้ำก่อน"); return; }
             const black = document.getElementById('train-black-digits').value.trim();
             const red = document.getElementById('train-red-digits').value.trim();
@@ -728,7 +708,7 @@ def predict_meter(record: MeterRecord):
             const totalM3 = baseM3 + (subDecimal / 1000);
             const totalLiters = totalM3 * 1000;
 
-            dataset.push({
+            const newItem = {
                 id: 'team_item_' + Date.now(),
                 image: currentProcessedImage,
                 blackDigits: black,
@@ -738,10 +718,32 @@ def predict_meter(record: MeterRecord):
                 totalM3: totalM3,
                 totalLiters: totalLiters,
                 date: new Date().toLocaleDateString('th-TH')
-            });
+            };
 
-            saveDatasetToStorage();
-            alert("ส่งข้อมูลเข้าระบบ Dataset ของทีมสำเร็จ! (ทั้งหมด " + dataset.length + " รูป)");
+            if (GOOGLE_SHEET_API_URL.includes('YOUR_SCRIPT_ID_HERE')) {
+                dataset.push(newItem);
+                updateDatasetUI();
+                alert("บันทึกข้อมูลจำลองสำเร็จ (กรุณาตั้งค่า Google Sheet URL เพื่อบันทึกจริง)");
+                return;
+            }
+
+            try {
+                const response = await fetch(GOOGLE_SHEET_API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(newItem)
+                });
+
+                if (response.ok) {
+                    dataset.push(newItem);
+                    updateDatasetUI();
+                    alert("บันทึกข้อมูลลง Google Sheets สำเร็จ!");
+                } else {
+                    alert("ไม่สามารถบันทึกข้อมูลลง Google Sheets ได้");
+                }
+            } catch (err) {
+                console.error("API Error:", err);
+                alert("เกิดข้อผิดพลาดในการเชื่อมต่อ Google Sheets");
+            }
         }
 
         function updateDatasetUI() {
@@ -750,7 +752,7 @@ def predict_meter(record: MeterRecord):
 
             const grid = document.getElementById('dataset-grid');
             if (dataset.length === 0) {
-                grid.innerHTML = `<div class="col-span-full py-8 text-center text-slate-500 text-xs">ยังไม่มีข้อมูลใน Dataset ร่วม</div>`;
+                grid.innerHTML = `<div class="col-span-full py-8 text-center text-slate-500 text-xs">ยังไม่มีข้อมูลใน Google Sheets</div>`;
                 return;
             }
             let html = '';
@@ -764,21 +766,16 @@ def predict_meter(record: MeterRecord):
                         <div class="space-y-1 font-mono text-xs">
                             <div class="flex justify-between"><span class="text-slate-400">ดำ (4):</span><span class="font-bold text-white tracking-widest">${item.blackDigits}</span></div>
                             <div class="flex justify-between"><span class="text-slate-400">แดง (3):</span><span class="font-bold text-red-400 tracking-widest">${item.redDigits}</span></div>
-                            <div class="text-[11px] text-emerald-400 font-semibold">${item.totalLiters.toLocaleString('th-TH', {maximumFractionDigits:1})} ลิตร</div>
+                            <div class="text-[11px] text-emerald-400 font-semibold">${parseFloat(item.totalLiters || 0).toLocaleString('th-TH', {maximumFractionDigits:1})} ลิตร</div>
                         </div>
                         <div class="flex justify-between items-center text-[10px] text-slate-400 pt-1 border-t border-slate-800">
                             <span>เข็ม: [${item.dial01},${item.dial001}]</span>
-                            <button onclick="removeDatasetItem('${item.id}')" class="text-red-400 hover:text-red-300">ลบ</button>
+                            <span class="text-slate-500">${item.date || ''}</span>
                         </div>
                     </div>
                 `;
             });
             grid.innerHTML = html;
-        }
-
-        function removeDatasetItem(id) {
-            dataset = dataset.filter(d => d.id !== id);
-            saveDatasetToStorage();
         }
 
         function exportDatasetJSON() {
@@ -799,8 +796,8 @@ def predict_meter(record: MeterRecord):
                     const imported = JSON.parse(evt.target.result);
                     if (Array.isArray(imported)) {
                         dataset = dataset.concat(imported);
-                        saveDatasetToStorage();
-                        alert(`รวม Dataset สำเร็จ เพิ่มเข้ามา ${imported.length} รายการ`);
+                        updateDatasetUI();
+                        alert(`นำเข้า JSON สำเร็จ ${imported.length} รายการ`);
                     }
                 } catch(err) { alert("ไฟล์ JSON ไม่ถูกต้อง"); }
             };
